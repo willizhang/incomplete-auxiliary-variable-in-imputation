@@ -24,6 +24,9 @@ library(survey)
 library(iai)
 library(mice)
 library(mitools)
+library(forestploter)
+library(readxl)
+library(here)
 ```
 
 ### 2. SPHC 2014, followed up to 2021
@@ -254,7 +257,7 @@ md.pattern(
   d_2014 %>% # among all participants
     filter( !is.na( sexual_identity_2014 ) ) %>%
     select( "occupation", "sexual_identity_2021" ) %>%
-    rename( ID_2021 = sexual_identity_2021 ),
+    rename( SI_2021 = sexual_identity_2021 ),
   rotate.names = FALSE )
 
 d_2014 %>%
@@ -264,10 +267,12 @@ d_2014 %>%
     prop_occ_missing_given_id2021_missing = mean( is.na( occupation[ is.na( sexual_identity_2021 ) ] ) )
   )
 
+pdf( "missing_pattern.pdf", width = 4, height = 6 )
 md.pattern( d_2014_selected %>% # among 25-60 years
               select( "occupation", "sexual_identity_2021" ) %>%
-              rename( ID_2021 = sexual_identity_2021 ),
+              rename( SI_2021 = sexual_identity_2021 ),
             rotate.names = FALSE )
+dev.off()
 
 d_2014_selected %>%
   summarise(
@@ -292,10 +297,19 @@ poisson_robust_model <- svyglm( identity_change ~ sexual_identity_2014,
 
 summary( poisson_robust_model )
 
-round(
+results_cc <- round( 
   exp( cbind( coef( poisson_robust_model )[ 2 ],
-              confint( poisson_robust_model ) [ 2, , drop = FALSE ] ) ),
-  2 )
+              confint( poisson_robust_model ) [ 2, , drop = FALSE ] ) ), 2 ) %>% 
+  as.data.frame() %>%
+  remove_rownames() %>%
+  mutate( model = "Complete-case analysis",
+          sample_size = nrow( d_cc ) ) %>%
+  rename(
+    estimate = `V1`,
+    lower_ci = `2.5 %`,
+    upper_ci = `97.5 %`
+  )
+results_cc
 ```
 
 ### 4. AF4 Method
@@ -314,19 +328,28 @@ table( d_af4$Y )
 nrow( d_af4 )
 
 set.seed( 123 )
-af4_model <- af4( data = d_af4,
-                  X_names = c( "sexual_identity_2014" ), 
-                  X_values_1 = c( "Non-heterosexual" ),
-                  X_values_2 = c( "Heterosexual" ),
-                  contrast_type = "ratio",
-                  Y_model = Y ~ sexual_identity_2014 + occupation,
-                  W_model = list(
-                    occupation ~ sexual_identity_2014 ) 
-                  )
-af4_model
+af4_model_2 <- af4( data = d_af4,
+                    X_names = c( "sexual_identity_2014" ), 
+                    X_values_1 = c( "Non-heterosexual" ),
+                    X_values_2 = c( "Heterosexual" ),
+                    contrast_type = "ratio",
+                    Y_model = Y ~ sexual_identity_2014 + occupation,
+                    W_model = list(
+                      occupation ~ sexual_identity_2014 ) 
+                    )
+af4_model_2
 
 set.seed( 123 )
-get_CI( af4_model, n_boot = 1000, type = 'perc' )
+af4_model_2_ci <- get_CI( af4_model_2, n_boot = 1000, type = 'perc' )
+af4_model_2_ci
+
+results_af4_model_2 <- data.frame(
+  estimate = round( af4_model_2$contrast_est, 2 ),
+  lower_ci = round( af4_model_2_ci$ci_contrast$percent[4], 2 ),
+  upper_ci = round( af4_model_2_ci$ci_contrast$percent[5], 2 ) ) %>%
+  mutate( model = "af4_model_2",
+          sample_size = nrow( d_af4 ) )
+results_af4_model_2
 ```
 
 #### 4.2. Model 3
@@ -334,21 +357,30 @@ get_CI( af4_model, n_boot = 1000, type = 'perc' )
 # modeled auxiliary variables: age, sex, country of birth
 
 set.seed( 123 )
-af4_model <- af4( data = d_af4,
-                  X_names = c( "sexual_identity_2014" ), 
-                  X_values_1 = c( "Non-heterosexual" ),
-                  X_values_2 = c( "Heterosexual" ),
-                  contrast_type = "ratio",
-                  Y_model = Y ~ sexual_identity_2014 + age + sex + country_of_birth,
-                  W_model = list(
-                    sex ~ sexual_identity_2014,
-                    age ~ sexual_identity_2014 + sex,
-                    country_of_birth ~ sexual_identity_2014 + sex + age
-                    ) )
-af4_model
+af4_model_3 <- af4( data = d_af4,
+                    X_names = c( "sexual_identity_2014" ), 
+                    X_values_1 = c( "Non-heterosexual" ),
+                    X_values_2 = c( "Heterosexual" ),
+                    contrast_type = "ratio",
+                    Y_model = Y ~ sexual_identity_2014 + age + sex + country_of_birth,
+                    W_model = list(
+                      sex ~ sexual_identity_2014,
+                      age ~ sexual_identity_2014 + sex,
+                      country_of_birth ~ sexual_identity_2014 + sex + age
+                      ) )
+af4_model_3
 
 set.seed( 123 )
-get_CI( af4_model, n_boot = 1000, type = 'perc' )
+af4_model_3_ci <- get_CI( af4_model_3, n_boot = 1000, type = 'perc' )
+af4_model_3_ci
+
+results_af4_model_3 <- data.frame(
+  estimate = round( af4_model_3$contrast_est, 2 ),
+  lower_ci = round( af4_model_3_ci$ci_contrast$percent[4], 2 ),
+  upper_ci = round( af4_model_3_ci$ci_contrast$percent[5], 2 ) ) %>%
+  mutate( model = "af4_model_3",
+          sample_size = nrow( d_af4 ) )
+results_af4_model_3
 ```
 
 #### 4.3. Model 4
@@ -356,22 +388,31 @@ get_CI( af4_model, n_boot = 1000, type = 'perc' )
 # modeled auxiliary variables: age, sex, country of birth, occupation
 
 set.seed( 123 )
-af4_model <- af4( data = d_af4,
-                  X_names = c( "sexual_identity_2014" ), 
-                  X_values_1 = c( "Non-heterosexual" ),
-                  X_values_2 = c( "Heterosexual" ),
-                  contrast_type = "ratio",
-                  Y_model = Y ~ sexual_identity_2014 + age + sex + country_of_birth + occupation,
-                  W_model = list(
-                    sex ~ sexual_identity_2014,
-                    age ~ sexual_identity_2014 + sex,
-                    country_of_birth ~ sexual_identity_2014 + sex + age,
-                    occupation ~ sexual_identity_2014 + sex + age + country_of_birth
-                    ) )
-af4_model
+af4_model_4 <- af4( data = d_af4,
+                    X_names = c( "sexual_identity_2014" ), 
+                    X_values_1 = c( "Non-heterosexual" ),
+                    X_values_2 = c( "Heterosexual" ),
+                    contrast_type = "ratio",
+                    Y_model = Y ~ sexual_identity_2014 + age + sex + country_of_birth + occupation,
+                    W_model = list(
+                      sex ~ sexual_identity_2014,
+                      age ~ sexual_identity_2014 + sex,
+                      country_of_birth ~ sexual_identity_2014 + sex + age,
+                      occupation ~ sexual_identity_2014 + sex + age + country_of_birth
+                      ) )
+af4_model_4
 
 set.seed( 123 )
-get_CI( af4_model, n_boot = 1000, type = 'perc' )
+af4_model_4_ci <- get_CI( af4_model_4, n_boot = 1000, type = 'perc' )
+af4_model_4_ci
+
+results_af4_model_4 <- data.frame(
+  estimate = round( af4_model_4$contrast_est, 2 ),
+  lower_ci = round( af4_model_4_ci$ci_contrast$percent[4], 2 ),
+  upper_ci = round( af4_model_4_ci$ci_contrast$percent[5], 2 ) ) %>%
+  mutate( model = "af4_model_4",
+          sample_size = nrow( d_af4 ) )
+results_af4_model_4
 ```
 
 ### 5. MICE
@@ -388,7 +429,7 @@ summary( mi_dataset )
 str( mi_dataset )
 miss_var_summary( mi_dataset )
 
-imp <- mice( mi_dataset, m = 70, seed = 123, print = FALSE )
+imp <- mice( mi_dataset, m = 50, seed = 123, print = FALSE )
 summary( imp )
 plot( imp )
 
@@ -409,9 +450,21 @@ poisson_robust_model <- with( design_imp,
 
 pooled <- MIcombine( poisson_robust_model )
 summary_result <- summary( pooled )
-round(
+summary_result
+
+results_mi_model_1 <- round( 
   exp( summary_result[ 2, c( 1, 3, 4 ) ] ),
-  2 )
+  2 ) %>% 
+  as.data.frame() %>%
+  remove_rownames() %>%
+  mutate( model = "mi_model_1",
+          sample_size = nrow( mi_dataset ) ) %>%
+  rename(
+    estimate = "results",
+    lower_ci = "(lower",
+    upper_ci = "upper)"
+  )
+results_mi_model_1
 ```
 
 #### 5.2. Model 2
@@ -427,7 +480,7 @@ summary( mi_dataset )
 str( mi_dataset )
 miss_var_summary( mi_dataset )
 
-imp <- mice( mi_dataset, m = 70, seed = 123, print = FALSE )
+imp <- mice( mi_dataset, m = 50, seed = 123, print = FALSE )
 summary( imp )
 plot( imp )
 
@@ -448,9 +501,21 @@ poisson_robust_model <- with( design_imp,
 
 pooled <- MIcombine( poisson_robust_model )
 summary_result <- summary( pooled )
-round(
+summary_result
+
+results_mi_model_2 <- round( 
   exp( summary_result[ 2, c( 1, 3, 4 ) ] ),
-  2 )
+  2 ) %>% 
+  as.data.frame() %>%
+  remove_rownames() %>%
+  mutate( model = "mi_model_2",
+          sample_size = nrow( mi_dataset ) ) %>%
+  rename(
+    estimate = "results",
+    lower_ci = "(lower",
+    upper_ci = "upper)"
+  )
+results_mi_model_2
 ```
 
 #### 5.3. Model 3
@@ -466,7 +531,7 @@ summary( mi_dataset )
 str( mi_dataset )
 miss_var_summary( mi_dataset )
 
-imp <- mice( mi_dataset, m = 70, seed = 123, print = FALSE )
+imp <- mice( mi_dataset, m = 50, seed = 123, print = FALSE )
 summary( imp )
 plot( imp )
 
@@ -487,9 +552,21 @@ poisson_robust_model <- with( design_imp,
 
 pooled <- MIcombine( poisson_robust_model )
 summary_result <- summary( pooled )
-round(
+summary_result
+
+results_mi_model_3 <- round( 
   exp( summary_result[ 2, c( 1, 3, 4 ) ] ),
-  2 )
+  2 ) %>% 
+  as.data.frame() %>%
+  remove_rownames() %>%
+  mutate( model = "mi_model_3",
+          sample_size = nrow( mi_dataset ) ) %>%
+  rename(
+    estimate = "results",
+    lower_ci = "(lower",
+    upper_ci = "upper)"
+  )
+results_mi_model_3
 ```
 
 #### 5.4. Model 4
@@ -505,7 +582,7 @@ summary( mi_dataset )
 str( mi_dataset )
 miss_var_summary( mi_dataset )
 
-imp <- mice( mi_dataset, m = 70, seed = 123, print = FALSE )
+imp <- mice( mi_dataset, m = 50, seed = 123, print = FALSE )
 summary( imp )
 plot( imp )
 
@@ -526,7 +603,228 @@ poisson_robust_model <- with( design_imp,
 
 pooled <- MIcombine( poisson_robust_model )
 summary_result <- summary( pooled )
-round(
+summary_result
+
+results_mi_model_4 <- round( 
   exp( summary_result[ 2, c( 1, 3, 4 ) ] ),
-  2 )
+  2 ) %>% 
+  as.data.frame() %>%
+  remove_rownames() %>%
+  mutate( model = "mi_model_4",
+          sample_size = nrow( mi_dataset ) ) %>%
+  rename(
+    estimate = "results",
+    lower_ci = "(lower",
+    upper_ci = "upper)"
+  )
+results_mi_model_4
+```
+
+### 6. Plotting
+```{r}
+#results_all <- bind_rows( 
+#  results_cc,
+#  results_af4_model_2,
+#  results_af4_model_3,
+#  results_af4_model_4,
+#  results_mi_model_1,
+#  results_mi_model_2,
+#  results_mi_model_3,
+#  results_mi_model_4 )
+
+#writexl::write_xlsx( results_all, "results_all.xlsx" )
+
+results_all <- read_excel(here("results_all.xlsx"))
+
+results_all <- results_all %>%
+  select( model, estimate, lower_ci, upper_ci, sample_size )
+
+desired_order <- c( "Complete-case analysis", "mi_model_1", "mi_model_2", "af4_model_2", "mi_model_3", "af4_model_3", "mi_model_4", "af4_model_4" )
+                    
+results_all <- results_all %>%
+  mutate( model = factor( model, levels = desired_order ) ) %>%
+  arrange( model )
+
+results_all <- results_all %>%
+  mutate( sample_size = prettyNum( sample_size, big.mark = ",", preserve.width = "none" ) )
+
+results_all <- results_all %>% 
+  add_row( model = "Model 1", .before = 2 )
+
+results_all <- results_all %>% 
+  add_row( model = "Model 2", .before = 4 )
+
+results_all <- results_all %>% 
+  add_row( model = "Model 3", .before = 7 )
+
+results_all <- results_all %>% 
+  add_row( model = "Model 4", .before = 10 )
+
+results_all$model[ results_all$model == "Complete-case analysis" ] <- "CCA"
+results_all$model[ results_all$model == "mi_model_1" ] <- paste0( "   ", "MI" )
+results_all$model[ results_all$model == "mi_model_2" ] <- paste0( "   ", "MI" )
+results_all$model[ results_all$model == "af4_model_2" ] <- paste0( "   ", "MIA" )
+results_all$model[ results_all$model == "mi_model_3" ] <- paste0( "   ", "MI" )
+results_all$model[ results_all$model == "af4_model_3" ] <- paste0( "   ", "MIA" )
+results_all$model[ results_all$model == "mi_model_4" ] <- paste0( "   ", "MI" )
+results_all$model[ results_all$model == "af4_model_4" ] <- paste0( "   ", "MIA" )
+
+results_all <- results_all %>% 
+  add_column( "risk_ratio" = paste0(
+    sprintf( "%.2f", results_all$estimate ), " (", 
+    sprintf( "%.2f", results_all$lower_ci ), ", ", 
+    sprintf( "%.2f", results_all$upper_ci ), ")" ),
+    .before = 2 )
+
+results_all$risk_ratio <- ifelse( is.na( results_all$estimate ), "", 
+                                  results_all$risk_ratio )
+
+results_all$sample_size <- ifelse( is.na( results_all$estimate ), "",
+                                   results_all$sample_size )
+
+results_all <- results_all %>% 
+  add_column( ` ` = paste( rep( " ", 20 ) , collapse = " " ), .after = 6 )
+
+results_all <- results_all %>%
+  add_column( temp1 = " ", .before = 2 ) %>%
+  add_column( temp2 = " ", .before = 7 ) %>%
+  add_column( temp3 = " ", .before = 9 )
+
+names( results_all )[ names( results_all ) %in% c( "model", "temp1", "temp2", "temp3", "risk_ratio", "sample_size" ) ] <- ""
+
+tm <- forest_theme(
+  base_size = 11,
+  colhead = list( fg_params = list( fontsize = 11 ) ), 
+  base_family = "Arial",
+  ci_col = "red"
+  )
+
+p_rr <- forest(
+  results_all[ , c( 1:3, 7:10 ) ],
+  
+  est = results_all$estimate,
+  lower = results_all$lower_ci,
+  upper = results_all$upper_ci,
+  
+  ci_column = 7,
+  sizes = 0.4,
+  
+  xlim = c( 8, 20 ),
+  ticks_at = c( 8, 12, 16, 20 ),
+  xlab = "Risk Ratio (95% CI)",
+  theme = tm
+)
+
+p_rr <- edit_plot( 
+  p_rr,
+  row = c( 1, 2, 4, 7, 10 ),
+  col = 1,
+  gp = gpar( fontface = "bold" )
+  )
+
+p_rr <- add_text(
+  p_rr,
+  text = "Model",
+  col = 1,
+  row = 1,
+  part = "header",
+  gp = gpar(
+    fontface = "bold",
+    fontsize = 11,
+    fontfamily = "Arial"
+  )
+)
+
+p_rr <- add_text(
+  p_rr,
+  text = "(95% CI)",
+  col = 3,
+  row = 1,
+  part = "header",
+  gp = gpar(
+    fontface = "bold",
+    fontsize = 11,
+    fontfamily = "Arial"
+  )
+)
+
+p_rr <- add_text(
+  p_rr,
+  text = "Size",
+  col = 5,
+  row = 1,
+  part = "header",
+  gp = gpar(
+    fontface = "bold",
+    fontsize = 11,
+    fontfamily = "Arial"
+  )
+)
+
+p_rr <- insert_text(
+  p_rr,
+  text = "Imputation",
+  col = 1,
+  row = 1,
+  part = "header",
+  gp = gpar(
+    fontface = "bold",
+    fontsize = 11,
+    fontfamily = "Arial"
+  )
+)
+
+p_rr <- add_text(
+  p_rr,
+  text = "Risk Ratio",
+  col = 3,
+  row = 1,
+  part = "header",
+  gp = gpar(
+    fontface = "bold",
+    fontsize = 11,
+    fontfamily = "Arial"
+  )
+)
+
+p_rr <- add_text(
+  p_rr,
+  text = "Sample",
+  col = 5,
+  row = 1,
+  part = "header",
+  gp = gpar(
+    fontface = "bold",
+    fontsize = 11,
+    fontfamily = "Arial"
+  )
+)
+
+p_rr <- edit_plot(
+  p_rr,
+  row = 1:12, 
+  which = "background",
+  gp = gpar( fill = NA )
+  )
+
+p_rr <- add_border(
+  p_rr,
+  part = "header",
+  row = 2,
+  col = 1:5,
+  where = "bottom",
+  gp = gpar( lwd = 1 )
+  )
+
+p_rr <- add_border(
+  p_rr,
+  part = "body",
+  row = 1:11,
+  col = 1:5,
+  where = "bottom",
+  gp = gpar( lwd = 1, col = "lightgrey" )
+  )
+
+plot( p_rr )
+ggsave( "forest_plot.svg", plot = p_rr, width = 6.5, height = 5 )
 ```
