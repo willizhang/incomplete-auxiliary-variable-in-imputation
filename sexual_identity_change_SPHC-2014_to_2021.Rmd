@@ -21,7 +21,7 @@ library(naniar)
 library(haven)
 library(finalfit)
 library(survey)
-library(iai)
+library(mia)
 library(mice)
 library(mitools)
 library(forestploter)
@@ -312,23 +312,23 @@ results_cc <- round(
 results_cc
 ```
 
-### 4. AF4 Method
+### 4. MIA Method
 #### 4.1. Model 2
 ```{r}
 # modeled auxiliary variable: occupation
 
-d_af4 <- d_2014_selected %>%
+d_mia <- d_2014_selected %>%
   mutate(
     sex = ifelse( sex == "Female", 1, 0 ),
     Y = identity_change )
 
-summary( d_af4 )
-table( d_af4$sex )
-table( d_af4$Y )
-nrow( d_af4 )
+summary( d_mia )
+table( d_mia$sex )
+table( d_mia$Y )
+nrow( d_mia )
 
 set.seed( 123 )
-af4_model_2 <- af4( data = d_af4,
+mia_model_2 <- mia( data = d_mia,
                     X_names = c( "sexual_identity_2014" ), 
                     X_values_1 = c( "Non-heterosexual" ),
                     X_values_2 = c( "Heterosexual" ),
@@ -337,19 +337,19 @@ af4_model_2 <- af4( data = d_af4,
                     W_model = list(
                       occupation ~ sexual_identity_2014 ) 
                     )
-af4_model_2
+mia_model_2
 
 set.seed( 123 )
-af4_model_2_ci <- get_CI( af4_model_2, n_boot = 1000, type = 'perc' )
-af4_model_2_ci
+mia_model_2_ci <- get_CI( mia_model_2, n_boot = 1000, type = 'perc' )
+mia_model_2_ci
 
-results_af4_model_2 <- data.frame(
-  estimate = round( af4_model_2$contrast_est, 2 ),
-  lower_ci = round( af4_model_2_ci$ci_contrast$percent[4], 2 ),
-  upper_ci = round( af4_model_2_ci$ci_contrast$percent[5], 2 ) ) %>%
-  mutate( model = "af4_model_2",
-          sample_size = nrow( d_af4 ) )
-results_af4_model_2
+results_mia_model_2 <- data.frame(
+  estimate = round( mia_model_2$contrast_est, 2 ),
+  lower_ci = round( mia_model_2_ci$ci_contrast$percent[4], 2 ),
+  upper_ci = round( mia_model_2_ci$ci_contrast$percent[5], 2 ) ) %>%
+  mutate( model = "mia_model_2",
+          sample_size = nrow( d_mia ) )
+results_mia_model_2
 ```
 
 #### 4.2. Model 3
@@ -357,7 +357,7 @@ results_af4_model_2
 # modeled auxiliary variables: age, sex, country of birth
 
 set.seed( 123 )
-af4_model_3 <- af4( data = d_af4,
+mia_model_3 <- mia( data = d_mia,
                     X_names = c( "sexual_identity_2014" ), 
                     X_values_1 = c( "Non-heterosexual" ),
                     X_values_2 = c( "Heterosexual" ),
@@ -368,19 +368,19 @@ af4_model_3 <- af4( data = d_af4,
                       age ~ sexual_identity_2014 + sex,
                       country_of_birth ~ sexual_identity_2014 + sex + age
                       ) )
-af4_model_3
+mia_model_3
 
 set.seed( 123 )
-af4_model_3_ci <- get_CI( af4_model_3, n_boot = 1000, type = 'perc' )
-af4_model_3_ci
+mia_model_3_ci <- get_CI( mia_model_3, n_boot = 1000, type = 'perc' )
+mia_model_3_ci
 
-results_af4_model_3 <- data.frame(
-  estimate = round( af4_model_3$contrast_est, 2 ),
-  lower_ci = round( af4_model_3_ci$ci_contrast$percent[4], 2 ),
-  upper_ci = round( af4_model_3_ci$ci_contrast$percent[5], 2 ) ) %>%
-  mutate( model = "af4_model_3",
-          sample_size = nrow( d_af4 ) )
-results_af4_model_3
+results_mia_model_3 <- data.frame(
+  estimate = round( mia_model_3$contrast_est, 2 ),
+  lower_ci = round( mia_model_3_ci$ci_contrast$percent[4], 2 ),
+  upper_ci = round( mia_model_3_ci$ci_contrast$percent[5], 2 ) ) %>%
+  mutate( model = "mia_model_3",
+          sample_size = nrow( d_mia ) )
+results_mia_model_3
 ```
 
 #### 4.3. Model 4
@@ -388,7 +388,7 @@ results_af4_model_3
 # modeled auxiliary variables: age, sex, country of birth, occupation
 
 set.seed( 123 )
-af4_model_4 <- af4( data = d_af4,
+mia_model_4 <- mia( data = d_mia,
                     X_names = c( "sexual_identity_2014" ), 
                     X_values_1 = c( "Non-heterosexual" ),
                     X_values_2 = c( "Heterosexual" ),
@@ -400,19 +400,19 @@ af4_model_4 <- af4( data = d_af4,
                       country_of_birth ~ sexual_identity_2014 + sex + age,
                       occupation ~ sexual_identity_2014 + sex + age + country_of_birth
                       ) )
-af4_model_4
+mia_model_4
 
 set.seed( 123 )
-af4_model_4_ci <- get_CI( af4_model_4, n_boot = 1000, type = 'perc' )
-af4_model_4_ci
+mia_model_4_ci <- get_CI( mia_model_4, n_boot = 1000, type = 'perc' )
+mia_model_4_ci
 
-results_af4_model_4 <- data.frame(
-  estimate = round( af4_model_4$contrast_est, 2 ),
-  lower_ci = round( af4_model_4_ci$ci_contrast$percent[4], 2 ),
-  upper_ci = round( af4_model_4_ci$ci_contrast$percent[5], 2 ) ) %>%
-  mutate( model = "af4_model_4",
-          sample_size = nrow( d_af4 ) )
-results_af4_model_4
+results_mia_model_4 <- data.frame(
+  estimate = round( mia_model_4$contrast_est, 2 ),
+  lower_ci = round( mia_model_4_ci$ci_contrast$percent[4], 2 ),
+  upper_ci = round( mia_model_4_ci$ci_contrast$percent[5], 2 ) ) %>%
+  mutate( model = "mia_model_4",
+          sample_size = nrow( d_mia ) )
+results_mia_model_4
 ```
 
 ### 5. MICE
@@ -622,24 +622,24 @@ results_mi_model_4
 
 ### 6. Plotting
 ```{r}
-#results_all <- bind_rows( 
-#  results_cc,
-#  results_af4_model_2,
-#  results_af4_model_3,
-#  results_af4_model_4,
-#  results_mi_model_1,
-#  results_mi_model_2,
-#  results_mi_model_3,
-#  results_mi_model_4 )
+results_all <- bind_rows( 
+  results_cc,
+  results_mia_model_2,
+  results_mia_model_3,
+  results_mia_model_4,
+  results_mi_model_1,
+  results_mi_model_2,
+  results_mi_model_3,
+  results_mi_model_4 )
 
-#writexl::write_xlsx( results_all, "results_all.xlsx" )
+writexl::write_xlsx( results_all, "results_all.xlsx" )
 
-results_all <- read_excel(here("results_all.xlsx"))
+#results_all <- read_excel(here("results_all.xlsx"))
 
 results_all <- results_all %>%
   select( model, estimate, lower_ci, upper_ci, sample_size )
 
-desired_order <- c( "Complete-case analysis", "mi_model_1", "mi_model_2", "af4_model_2", "mi_model_3", "af4_model_3", "mi_model_4", "af4_model_4" )
+desired_order <- c( "Complete-case analysis", "mi_model_1", "mi_model_2", "mia_model_2", "mi_model_3", "mia_model_3", "mi_model_4", "mia_model_4" )
                     
 results_all <- results_all %>%
   mutate( model = factor( model, levels = desired_order ) ) %>%
@@ -661,13 +661,13 @@ results_all <- results_all %>%
   add_row( model = "Model 4", .before = 10 )
 
 results_all$model[ results_all$model == "Complete-case analysis" ] <- "CCA"
-results_all$model[ results_all$model == "mi_model_1" ] <- paste0( "   ", "MI" )
-results_all$model[ results_all$model == "mi_model_2" ] <- paste0( "   ", "MI" )
-results_all$model[ results_all$model == "af4_model_2" ] <- paste0( "   ", "MIA" )
-results_all$model[ results_all$model == "mi_model_3" ] <- paste0( "   ", "MI" )
-results_all$model[ results_all$model == "af4_model_3" ] <- paste0( "   ", "MIA" )
-results_all$model[ results_all$model == "mi_model_4" ] <- paste0( "   ", "MI" )
-results_all$model[ results_all$model == "af4_model_4" ] <- paste0( "   ", "MIA" )
+results_all$model[ results_all$model == "mi_model_1" ] <- paste0( "   ", "MICE" )
+results_all$model[ results_all$model == "mi_model_2" ] <- paste0( "   ", "MICE" )
+results_all$model[ results_all$model == "mia_model_2" ] <- paste0( "   ", "MIA" )
+results_all$model[ results_all$model == "mi_model_3" ] <- paste0( "   ", "MICE" )
+results_all$model[ results_all$model == "mia_model_3" ] <- paste0( "   ", "MIA" )
+results_all$model[ results_all$model == "mi_model_4" ] <- paste0( "   ", "MICE" )
+results_all$model[ results_all$model == "mia_model_4" ] <- paste0( "   ", "MIA" )
 
 results_all <- results_all %>% 
   add_column( "risk_ratio" = paste0(
