@@ -696,7 +696,7 @@ tm <- forest_theme(
   base_size = 11,
   colhead = list( fg_params = list( fontsize = 11 ) ), 
   base_family = "Arial",
-  ci_col = "red"
+  ci_col = "#0072B2"
   )
 
 p_rr <- forest(
@@ -823,6 +823,17 @@ p_rr <- add_border(
   col = 1:5,
   where = "bottom",
   gp = gpar( lwd = 1, col = "lightgrey" )
+  )
+
+p_rr <- edit_plot(
+  p_rr,
+  row = c( 6, 9, 12 ),
+  col = 7,
+  which = "ci",
+  gp = gpar(
+    col = "red",
+    fill = "red"
+    )
   )
 
 plot( p_rr )
