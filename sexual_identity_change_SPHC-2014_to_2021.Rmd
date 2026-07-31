@@ -21,7 +21,7 @@ library(naniar)
 library(haven)
 library(finalfit)
 library(survey)
-library(mia)
+library(miapack)
 library(mice)
 library(mitools)
 library(forestploter)
@@ -327,92 +327,179 @@ table( d_mia$sex )
 table( d_mia$Y )
 nrow( d_mia )
 
+# NICE
 set.seed( 123 )
-mia_model_2 <- mia( data = d_mia,
-                    X_names = c( "sexual_identity_2014" ), 
-                    X_values_1 = c( "Non-heterosexual" ),
-                    X_values_2 = c( "Heterosexual" ),
-                    contrast_type = "ratio",
-                    Y_model = Y ~ sexual_identity_2014 + occupation,
-                    W_model = list(
-                      occupation ~ sexual_identity_2014 ) 
-                    )
-mia_model_2
+mia_nice_model_2 <- mia( 
+  data = d_mia,
+  X_names = "sexual_identity_2014",
+  X_values_1 = "Non-heterosexual",
+  X_values_2 = "Heterosexual",
+  contrast_type = "ratio",
+  Y_model = Y ~ sexual_identity_2014 + occupation,
+  W_model = list(
+    occupation ~ sexual_identity_2014 
+    )
+  )
+
+mia_nice_model_2
 
 set.seed( 123 )
-mia_model_2_ci <- get_CI( mia_model_2, n_boot = 1000, type = 'perc' )
-mia_model_2_ci
+mia_nice_model_2_ci <- get_CI( mia_nice_model_2, n_boot = 1000, type = 'perc' )
+mia_nice_model_2_ci
 
-results_mia_model_2 <- data.frame(
-  estimate = round( mia_model_2$contrast_est, 2 ),
-  lower_ci = round( mia_model_2_ci$ci_contrast$percent[4], 2 ),
-  upper_ci = round( mia_model_2_ci$ci_contrast$percent[5], 2 ) ) %>%
-  mutate( model = "mia_model_2",
+results_mia_nice_model_2 <- data.frame(
+  estimate = round( mia_nice_model_2$contrast_est, 2 ),
+  lower_ci = round( mia_nice_model_2_ci$ci_contrast$percent[4], 2 ),
+  upper_ci = round( mia_nice_model_2_ci$ci_contrast$percent[5], 2 ) ) %>%
+  mutate( model = "mia_nice_model_2",
           sample_size = nrow( d_mia ) )
-results_mia_model_2
+results_mia_nice_model_2
+
+
+# ICE
+mia_ice_model_2 <- mia_ice( 
+  data = d_mia,
+  X_names = "sexual_identity_2014",
+  X_values_1 = "Non-heterosexual",
+  X_values_2 = "Heterosexual",
+  contrast_type = "ratio",
+  Y_model = Y ~ sexual_identity_2014 + occupation,
+  outer_model = g_hat ~ sexual_identity_2014 )
+
+mia_ice_model_2
+
+set.seed( 123 )
+mia_ice_model_2_ci <- get_CI( mia_ice_model_2, n_boot = 1000, type = 'perc' )
+mia_ice_model_2_ci
+
+results_mia_ice_model_2 <- data.frame(
+  estimate = round( mia_ice_model_2$contrast_est, 2 ),
+  lower_ci = round( mia_ice_model_2_ci$ci_contrast$percent[4], 2 ),
+  upper_ci = round( mia_ice_model_2_ci$ci_contrast$percent[5], 2 ) ) %>%
+  mutate( model = "mia_ice_model_2",
+          sample_size = nrow( d_mia ) )
+results_mia_ice_model_2
 ```
 
 #### 4.2. Model 3
 ```{r}
 # modeled auxiliary variables: age, sex, country of birth
 
+# NICE
 set.seed( 123 )
-mia_model_3 <- mia( data = d_mia,
-                    X_names = c( "sexual_identity_2014" ), 
-                    X_values_1 = c( "Non-heterosexual" ),
-                    X_values_2 = c( "Heterosexual" ),
-                    contrast_type = "ratio",
-                    Y_model = Y ~ sexual_identity_2014 + age + sex + country_of_birth,
-                    W_model = list(
-                      sex ~ sexual_identity_2014,
-                      age ~ sexual_identity_2014 + sex,
-                      country_of_birth ~ sexual_identity_2014 + sex + age
-                      ) )
-mia_model_3
+mia_nice_model_3 <- mia( 
+  data = d_mia,
+  X_names = "sexual_identity_2014",
+  X_values_1 = "Non-heterosexual",
+  X_values_2 = "Heterosexual",
+  contrast_type = "ratio",
+  Y_model = Y ~ sexual_identity_2014 + age + sex + country_of_birth,
+  W_model = list(
+    sex ~ sexual_identity_2014,
+    age ~ sexual_identity_2014 + sex,
+    country_of_birth ~ sexual_identity_2014 + sex + age
+    )
+  )
+
+mia_nice_model_3
 
 set.seed( 123 )
-mia_model_3_ci <- get_CI( mia_model_3, n_boot = 1000, type = 'perc' )
-mia_model_3_ci
+mia_nice_model_3_ci <- get_CI( mia_nice_model_3, n_boot = 1000, type = 'perc' )
+mia_nice_model_3_ci
 
-results_mia_model_3 <- data.frame(
-  estimate = round( mia_model_3$contrast_est, 2 ),
-  lower_ci = round( mia_model_3_ci$ci_contrast$percent[4], 2 ),
-  upper_ci = round( mia_model_3_ci$ci_contrast$percent[5], 2 ) ) %>%
-  mutate( model = "mia_model_3",
+results_mia_nice_model_3 <- data.frame(
+  estimate = round( mia_nice_model_3$contrast_est, 2 ),
+  lower_ci = round( mia_nice_model_3_ci$ci_contrast$percent[4], 2 ),
+  upper_ci = round( mia_nice_model_3_ci$ci_contrast$percent[5], 2 ) ) %>%
+  mutate( model = "mia_nice_model_3",
           sample_size = nrow( d_mia ) )
-results_mia_model_3
+results_mia_nice_model_3
+
+
+# ICE
+mia_ice_model_3 <- mia_ice( 
+  data = d_mia,
+  X_names = "sexual_identity_2014",
+  X_values_1 = "Non-heterosexual",
+  X_values_2 = "Heterosexual",
+  contrast_type = "ratio",
+  Y_model = Y ~ sexual_identity_2014 + age + sex + country_of_birth,
+  outer_model = g_hat ~ sexual_identity_2014 )
+
+mia_ice_model_3
+
+set.seed( 123 )
+mia_ice_model_3_ci <- get_CI( mia_ice_model_3, n_boot = 1000, type = 'perc' )
+mia_ice_model_3_ci
+
+results_mia_ice_model_3 <- data.frame(
+  estimate = round( mia_ice_model_3$contrast_est, 2 ),
+  lower_ci = round( mia_ice_model_3_ci$ci_contrast$percent[4], 2 ),
+  upper_ci = round( mia_ice_model_3_ci$ci_contrast$percent[5], 2 ) ) %>%
+  mutate( model = "mia_ice_model_3",
+          sample_size = nrow( d_mia ) )
+results_mia_ice_model_3
 ```
 
 #### 4.3. Model 4
 ```{r}
 # modeled auxiliary variables: age, sex, country of birth, occupation
 
+# NICE
 set.seed( 123 )
-mia_model_4 <- mia( data = d_mia,
-                    X_names = c( "sexual_identity_2014" ), 
-                    X_values_1 = c( "Non-heterosexual" ),
-                    X_values_2 = c( "Heterosexual" ),
-                    contrast_type = "ratio",
-                    Y_model = Y ~ sexual_identity_2014 + age + sex + country_of_birth + occupation,
-                    W_model = list(
-                      sex ~ sexual_identity_2014,
-                      age ~ sexual_identity_2014 + sex,
-                      country_of_birth ~ sexual_identity_2014 + sex + age,
-                      occupation ~ sexual_identity_2014 + sex + age + country_of_birth
-                      ) )
-mia_model_4
+mia_nice_model_4 <- mia( 
+  data = d_mia,
+  X_names = "sexual_identity_2014",
+  X_values_1 = "Non-heterosexual",
+  X_values_2 = "Heterosexual",
+  contrast_type = "ratio",
+  Y_model = Y ~ sexual_identity_2014 + age + sex + country_of_birth + occupation,
+  W_model = list(
+    sex ~ sexual_identity_2014,
+    age ~ sexual_identity_2014 + sex,
+    country_of_birth ~ sexual_identity_2014 + sex + age,
+    occupation ~ sexual_identity_2014 + sex + age + country_of_birth
+    )
+  )
+
+mia_nice_model_4
 
 set.seed( 123 )
-mia_model_4_ci <- get_CI( mia_model_4, n_boot = 1000, type = 'perc' )
-mia_model_4_ci
+mia_nice_model_4_ci <- get_CI( mia_nice_model_4, n_boot = 1000, type = 'perc' )
+mia_nice_model_4_ci
 
-results_mia_model_4 <- data.frame(
-  estimate = round( mia_model_4$contrast_est, 2 ),
-  lower_ci = round( mia_model_4_ci$ci_contrast$percent[4], 2 ),
-  upper_ci = round( mia_model_4_ci$ci_contrast$percent[5], 2 ) ) %>%
-  mutate( model = "mia_model_4",
+results_mia_nice_model_4 <- data.frame(
+  estimate = round( mia_nice_model_4$contrast_est, 2 ),
+  lower_ci = round( mia_nice_model_4_ci$ci_contrast$percent[4], 2 ),
+  upper_ci = round( mia_nice_model_4_ci$ci_contrast$percent[5], 2 ) ) %>%
+  mutate( model = "mia_nice_model_4",
           sample_size = nrow( d_mia ) )
-results_mia_model_4
+results_mia_nice_model_4
+
+
+# ICE
+mia_ice_model_4 <- mia_ice( 
+  data = d_mia,
+  X_names = "sexual_identity_2014",
+  X_values_1 = "Non-heterosexual",
+  X_values_2 = "Heterosexual",
+  contrast_type = "ratio",
+  Y_model = Y ~ sexual_identity_2014 + age + sex + country_of_birth + occupation,
+  outer_model = g_hat ~ sexual_identity_2014 )
+
+mia_ice_model_4
+
+set.seed( 123 )
+mia_ice_model_4_ci <- get_CI( mia_ice_model_4, n_boot = 1000, type = 'perc' )
+mia_ice_model_4_ci
+
+results_mia_ice_model_4 <- data.frame(
+  estimate = round( mia_ice_model_4$contrast_est, 2 ),
+  lower_ci = round( mia_ice_model_4_ci$ci_contrast$percent[4], 2 ),
+  upper_ci = round( mia_ice_model_4_ci$ci_contrast$percent[5], 2 ) ) %>%
+  mutate( model = "mia_ice_model_4",
+          sample_size = nrow( d_mia ) )
+results_mia_ice_model_4
 ```
 
 ### 5. MICE
@@ -624,9 +711,12 @@ results_mi_model_4
 ```{r}
 results_all <- bind_rows( 
   results_cc,
-  results_mia_model_2,
-  results_mia_model_3,
-  results_mia_model_4,
+  results_mia_nice_model_2,
+  results_mia_nice_model_3,
+  results_mia_nice_model_4,
+  results_mia_ice_model_2,
+  results_mia_ice_model_3,
+  results_mia_ice_model_4,
   results_mi_model_1,
   results_mi_model_2,
   results_mi_model_3,
@@ -639,7 +729,10 @@ writexl::write_xlsx( results_all, "results_all.xlsx" )
 results_all <- results_all %>%
   select( model, estimate, lower_ci, upper_ci, sample_size )
 
-desired_order <- c( "Complete-case analysis", "mi_model_1", "mi_model_2", "mia_model_2", "mi_model_3", "mia_model_3", "mi_model_4", "mia_model_4" )
+desired_order <- c( "Complete-case analysis", "mi_model_1", 
+                    "mi_model_2", "mia_nice_model_2", "mia_ice_model_2", 
+                    "mi_model_3", "mia_nice_model_3", "mia_ice_model_3",
+                    "mi_model_4", "mia_nice_model_4", "mia_ice_model_4" )
                     
 results_all <- results_all %>%
   mutate( model = factor( model, levels = desired_order ) ) %>%
@@ -655,19 +748,24 @@ results_all <- results_all %>%
   add_row( model = "Model 2", .before = 4 )
 
 results_all <- results_all %>% 
-  add_row( model = "Model 3", .before = 7 )
+  add_row( model = "Model 3", .before = 8 )
 
 results_all <- results_all %>% 
-  add_row( model = "Model 4", .before = 10 )
+  add_row( model = "Model 4", .before = 12 )
 
 results_all$model[ results_all$model == "Complete-case analysis" ] <- "uCCA"
 results_all$model[ results_all$model == "mi_model_1" ] <- paste0( "   ", "MICE" )
 results_all$model[ results_all$model == "mi_model_2" ] <- paste0( "   ", "MICE" )
-results_all$model[ results_all$model == "mia_model_2" ] <- paste0( "   ", "MIA" )
 results_all$model[ results_all$model == "mi_model_3" ] <- paste0( "   ", "MICE" )
-results_all$model[ results_all$model == "mia_model_3" ] <- paste0( "   ", "MIA" )
 results_all$model[ results_all$model == "mi_model_4" ] <- paste0( "   ", "MICE" )
-results_all$model[ results_all$model == "mia_model_4" ] <- paste0( "   ", "MIA" )
+
+results_all$model[ results_all$model == "mia_nice_model_2" ] <- paste0( "   ", "MIA-NICE" )
+results_all$model[ results_all$model == "mia_nice_model_3" ] <- paste0( "   ", "MIA-NICE" )
+results_all$model[ results_all$model == "mia_nice_model_4" ] <- paste0( "   ", "MIA-NICE" )
+
+results_all$model[ results_all$model == "mia_ice_model_2" ] <- paste0( "   ", "MIA-ICE" )
+results_all$model[ results_all$model == "mia_ice_model_3" ] <- paste0( "   ", "MIA-ICE" )
+results_all$model[ results_all$model == "mia_ice_model_4" ] <- paste0( "   ", "MIA-ICE" )
 
 results_all <- results_all %>% 
   add_column( "risk_ratio" = paste0(
@@ -687,8 +785,8 @@ results_all <- results_all %>%
 
 results_all <- results_all %>%
   add_column( temp1 = " ", .before = 2 ) %>%
-  add_column( temp2 = " ", .before = 7 ) %>%
-  add_column( temp3 = " ", .before = 9 )
+  add_column( temp2 = "  ", .before = 7 ) %>%
+  add_column( temp3 = "   ", .before = 9 )
 
 names( results_all )[ names( results_all ) %in% c( "model", "temp1", "temp2", "temp3", "risk_ratio", "sample_size" ) ] <- ""
 
@@ -700,13 +798,13 @@ tm <- forest_theme(
   )
 
 p_rr <- forest(
-  results_all[ , c( 1:3, 7:10 ) ],
+  results_all[ , c( 1:3, 7, 10 ) ],
   
   est = results_all$estimate,
   lower = results_all$lower_ci,
   upper = results_all$upper_ci,
   
-  ci_column = 7,
+  ci_column = 5,
   sizes = 0.4,
   
   xlim = c( 8, 20 ),
@@ -717,7 +815,7 @@ p_rr <- forest(
 
 p_rr <- edit_plot( 
   p_rr,
-  row = c( 1, 2, 4, 7, 10 ),
+  row = c( 1, 2, 4, 8, 12 ),
   col = 1,
   gp = gpar( fontface = "bold" )
   )
@@ -748,18 +846,18 @@ p_rr <- add_text(
   )
 )
 
-p_rr <- add_text(
-  p_rr,
-  text = "Size",
-  col = 5,
-  row = 1,
-  part = "header",
-  gp = gpar(
-    fontface = "bold",
-    fontsize = 11,
-    fontfamily = "Arial"
-  )
-)
+# p_rr <- add_text(
+#   p_rr,
+#   text = "Size",
+#   col = 5,
+#   row = 1,
+#   part = "header",
+#   gp = gpar(
+#     fontface = "bold",
+#     fontsize = 11,
+#     fontfamily = "Arial"
+#   )
+# )
 
 p_rr <- insert_text(
   p_rr,
@@ -787,22 +885,22 @@ p_rr <- add_text(
   )
 )
 
-p_rr <- add_text(
-  p_rr,
-  text = "Sample",
-  col = 5,
-  row = 1,
-  part = "header",
-  gp = gpar(
-    fontface = "bold",
-    fontsize = 11,
-    fontfamily = "Arial"
-  )
-)
+# p_rr <- add_text(
+#   p_rr,
+#   text = "Sample",
+#   col = 5,
+#   row = 1,
+#   part = "header",
+#   gp = gpar(
+#     fontface = "bold",
+#     fontsize = 11,
+#     fontfamily = "Arial"
+#   )
+# )
 
 p_rr <- edit_plot(
   p_rr,
-  row = 1:12, 
+  row = 1:15, 
   which = "background",
   gp = gpar( fill = NA )
   )
@@ -811,7 +909,7 @@ p_rr <- add_border(
   p_rr,
   part = "header",
   row = 2,
-  col = 1:5,
+  col = 1:3,
   where = "bottom",
   gp = gpar( lwd = 1 )
   )
@@ -819,16 +917,16 @@ p_rr <- add_border(
 p_rr <- add_border(
   p_rr,
   part = "body",
-  row = 1:11,
-  col = 1:5,
+  row = 1:14,
+  col = 1:3,
   where = "bottom",
   gp = gpar( lwd = 1, col = "lightgrey" )
   )
 
 p_rr <- edit_plot(
   p_rr,
-  row = c( 6, 9, 12 ),
-  col = 7,
+  row = c( 6, 7, 9, 10, 11, 14, 15 ),
+  col = 5,
   which = "ci",
   gp = gpar(
     col = "red",

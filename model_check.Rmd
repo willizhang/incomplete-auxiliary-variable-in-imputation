@@ -258,7 +258,7 @@ p_check_rr <- edit_plot(
 
 p_check_rr <- add_text(
   p_check_rr,
-  text = "MIA",
+  text = "MIA-NICE",
   col = 1,
   row = 1,
   part = "header",
