@@ -727,12 +727,13 @@ writexl::write_xlsx( results_all, "results_all.xlsx" )
 #results_all <- read_excel(here("results_all.xlsx"))
 
 results_all <- results_all %>%
+  filter( !model %in% c( "mia_nice_model_2", "mia_nice_model_3", "mia_nice_model_4" )  ) %>%
   select( model, estimate, lower_ci, upper_ci, sample_size )
 
 desired_order <- c( "Complete-case analysis", "mi_model_1", 
-                    "mi_model_2", "mia_nice_model_2", "mia_ice_model_2", 
-                    "mi_model_3", "mia_nice_model_3", "mia_ice_model_3",
-                    "mi_model_4", "mia_nice_model_4", "mia_ice_model_4" )
+                    "mi_model_2", "mia_ice_model_2", 
+                    "mi_model_3", "mia_ice_model_3",
+                    "mi_model_4", "mia_ice_model_4" )
                     
 results_all <- results_all %>%
   mutate( model = factor( model, levels = desired_order ) ) %>%
@@ -748,10 +749,10 @@ results_all <- results_all %>%
   add_row( model = "Model 2", .before = 4 )
 
 results_all <- results_all %>% 
-  add_row( model = "Model 3", .before = 8 )
+  add_row( model = "Model 3", .before = 7 )
 
 results_all <- results_all %>% 
-  add_row( model = "Model 4", .before = 12 )
+  add_row( model = "Model 4", .before = 10 )
 
 results_all$model[ results_all$model == "Complete-case analysis" ] <- "uCCA"
 results_all$model[ results_all$model == "mi_model_1" ] <- paste0( "   ", "MICE" )
@@ -759,9 +760,9 @@ results_all$model[ results_all$model == "mi_model_2" ] <- paste0( "   ", "MICE" 
 results_all$model[ results_all$model == "mi_model_3" ] <- paste0( "   ", "MICE" )
 results_all$model[ results_all$model == "mi_model_4" ] <- paste0( "   ", "MICE" )
 
-results_all$model[ results_all$model == "mia_nice_model_2" ] <- paste0( "   ", "MIA-NICE" )
-results_all$model[ results_all$model == "mia_nice_model_3" ] <- paste0( "   ", "MIA-NICE" )
-results_all$model[ results_all$model == "mia_nice_model_4" ] <- paste0( "   ", "MIA-NICE" )
+# results_all$model[ results_all$model == "mia_nice_model_2" ] <- paste0( "   ", "MIA-NICE" )
+# results_all$model[ results_all$model == "mia_nice_model_3" ] <- paste0( "   ", "MIA-NICE" )
+# results_all$model[ results_all$model == "mia_nice_model_4" ] <- paste0( "   ", "MIA-NICE" )
 
 results_all$model[ results_all$model == "mia_ice_model_2" ] <- paste0( "   ", "MIA-ICE" )
 results_all$model[ results_all$model == "mia_ice_model_3" ] <- paste0( "   ", "MIA-ICE" )
@@ -798,13 +799,13 @@ tm <- forest_theme(
   )
 
 p_rr <- forest(
-  results_all[ , c( 1:3, 7, 10 ) ],
+  results_all[ , c( 1:3, 7:10 ) ],
   
   est = results_all$estimate,
   lower = results_all$lower_ci,
   upper = results_all$upper_ci,
   
-  ci_column = 5,
+  ci_column = 7,
   sizes = 0.4,
   
   xlim = c( 8, 20 ),
@@ -815,7 +816,7 @@ p_rr <- forest(
 
 p_rr <- edit_plot( 
   p_rr,
-  row = c( 1, 2, 4, 8, 12 ),
+  row = c( 1, 2, 4, 7, 10 ),
   col = 1,
   gp = gpar( fontface = "bold" )
   )
@@ -846,18 +847,18 @@ p_rr <- add_text(
   )
 )
 
-# p_rr <- add_text(
-#   p_rr,
-#   text = "Size",
-#   col = 5,
-#   row = 1,
-#   part = "header",
-#   gp = gpar(
-#     fontface = "bold",
-#     fontsize = 11,
-#     fontfamily = "Arial"
-#   )
-# )
+p_rr <- add_text(
+  p_rr,
+  text = "Size",
+  col = 5,
+  row = 1,
+  part = "header",
+  gp = gpar(
+    fontface = "bold",
+    fontsize = 11,
+    fontfamily = "Arial"
+  )
+)
 
 p_rr <- insert_text(
   p_rr,
@@ -885,22 +886,22 @@ p_rr <- add_text(
   )
 )
 
-# p_rr <- add_text(
-#   p_rr,
-#   text = "Sample",
-#   col = 5,
-#   row = 1,
-#   part = "header",
-#   gp = gpar(
-#     fontface = "bold",
-#     fontsize = 11,
-#     fontfamily = "Arial"
-#   )
-# )
+p_rr <- add_text(
+  p_rr,
+  text = "Sample",
+  col = 5,
+  row = 1,
+  part = "header",
+  gp = gpar(
+    fontface = "bold",
+    fontsize = 11,
+    fontfamily = "Arial"
+  )
+)
 
 p_rr <- edit_plot(
   p_rr,
-  row = 1:15, 
+  row = 1:12, 
   which = "background",
   gp = gpar( fill = NA )
   )
@@ -909,7 +910,7 @@ p_rr <- add_border(
   p_rr,
   part = "header",
   row = 2,
-  col = 1:3,
+  col = 1:5,
   where = "bottom",
   gp = gpar( lwd = 1 )
   )
@@ -917,7 +918,7 @@ p_rr <- add_border(
 p_rr <- add_border(
   p_rr,
   part = "body",
-  row = 1:14,
+  row = 1:11,
   col = 1:3,
   where = "bottom",
   gp = gpar( lwd = 1, col = "lightgrey" )
@@ -925,8 +926,8 @@ p_rr <- add_border(
 
 p_rr <- edit_plot(
   p_rr,
-  row = c( 6, 7, 9, 10, 11, 14, 15 ),
-  col = 5,
+  row = c( 6, 9, 12 ),
+  col = 7,
   which = "ci",
   gp = gpar(
     col = "red",
