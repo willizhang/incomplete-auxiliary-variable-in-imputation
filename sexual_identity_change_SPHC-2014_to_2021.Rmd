@@ -516,11 +516,11 @@ summary( mi_dataset )
 str( mi_dataset )
 miss_var_summary( mi_dataset )
 
-imp <- mice( mi_dataset, m = 50, seed = 123, print = FALSE )
-summary( imp )
-plot( imp )
+mice_model_1 <- mice( mi_dataset, m = 50, seed = 123, print = FALSE )
+summary( mice_model_1 )
+plot( mice_model_1 )
 
-imp_com <- complete( imp, action = "all", include = FALSE )
+imp_com <- complete( mice_model_1, action = "all", include = FALSE )
 summary( imp_com$`1` )
 
 imp_com <- lapply( imp_com, function( df ) {
@@ -567,11 +567,11 @@ summary( mi_dataset )
 str( mi_dataset )
 miss_var_summary( mi_dataset )
 
-imp <- mice( mi_dataset, m = 50, seed = 123, print = FALSE )
-summary( imp )
-plot( imp )
+mice_model_2 <- mice( mi_dataset, m = 50, seed = 123, print = FALSE )
+summary( mice_model_2 )
+plot( mice_model_2 )
 
-imp_com <- complete( imp, action = "all", include = FALSE )
+imp_com <- complete( mice_model_2, action = "all", include = FALSE )
 summary( imp_com$`1` )
 
 imp_com <- lapply( imp_com, function( df ) {
@@ -618,11 +618,11 @@ summary( mi_dataset )
 str( mi_dataset )
 miss_var_summary( mi_dataset )
 
-imp <- mice( mi_dataset, m = 50, seed = 123, print = FALSE )
-summary( imp )
-plot( imp )
+mice_model_3 <- mice( mi_dataset, m = 50, seed = 123, print = FALSE )
+summary( mice_model_3 )
+plot( mice_model_3 )
 
-imp_com <- complete( imp, action = "all", include = FALSE )
+imp_com <- complete( mice_model_3, action = "all", include = FALSE )
 summary( imp_com$`1` )
 
 imp_com <- lapply( imp_com, function( df ) {
@@ -669,11 +669,11 @@ summary( mi_dataset )
 str( mi_dataset )
 miss_var_summary( mi_dataset )
 
-imp <- mice( mi_dataset, m = 50, seed = 123, print = FALSE )
-summary( imp )
-plot( imp )
+mice_model_4 <- mice( mi_dataset, m = 50, seed = 123, print = FALSE )
+summary( mice_model_4 )
+plot( mice_model_4 )
 
-imp_com <- complete( imp, action = "all", include = FALSE )
+imp_com <- complete( mice_model_4, action = "all", include = FALSE )
 summary( imp_com$`1` )
 
 imp_com <- lapply( imp_com, function( df ) {
