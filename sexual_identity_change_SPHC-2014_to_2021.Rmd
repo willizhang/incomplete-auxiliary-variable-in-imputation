@@ -812,7 +812,7 @@ results_all <- results_all %>%
 results_all <- results_all %>% 
   add_row( model = "Model 4", .before = 10 )
 
-results_all$model[ results_all$model == "Complete-case analysis" ] <- "uCCA"
+results_all$model[ results_all$model == "Complete-case analysis" ] <- "uCC"
 results_all$model[ results_all$model == "mi_model_1" ] <- paste0( "   ", "MICE" )
 results_all$model[ results_all$model == "mi_model_2" ] <- paste0( "   ", "MICE" )
 results_all$model[ results_all$model == "mi_model_3" ] <- paste0( "   ", "MICE" )
