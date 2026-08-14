@@ -10,41 +10,32 @@ output: html_notebook
 ### 1. MIA-ICE Diagnostics
 #### 1.1. Model 2
 ```{r}
-plot( mia_ice_model_2$fit_Y )
-```
+simulationOutput <- simulateResiduals( 
+  fittedModel = mia_ice_model_2$fit_Y, 
+  plot = FALSE 
+  )
 
-```{r}
-plot( mia_ice_model_2$fit_outer )
-```
-
-```{r}
-plot( mia_ice_model_2$fit_outer_2 )
+plot( simulationOutput )
 ```
 
 #### 1.2. Model 3
 ```{r}
-plot( mia_ice_model_3$fit_Y )
-```
+simulationOutput <- simulateResiduals( 
+  fittedModel = mia_ice_model_3$fit_Y, 
+  plot = FALSE 
+  )
 
-```{r}
-plot( mia_ice_model_3$fit_outer )
-```
-
-```{r}
-plot( mia_ice_model_3$fit_outer_2 )
+plot( simulationOutput )
 ```
 
 #### 1.3. Model 4
 ```{r}
-plot( mia_ice_model_4$fit_Y )
-```
+simulationOutput <- simulateResiduals( 
+  fittedModel = mia_ice_model_4$fit_Y, 
+  plot = FALSE 
+  )
 
-```{r}
-plot( mia_ice_model_4$fit_outer )
-```
-
-```{r}
-plot( mia_ice_model_4$fit_outer_2 )
+plot( simulationOutput )
 ```
 
 ### 2. MICE Diagnostics
