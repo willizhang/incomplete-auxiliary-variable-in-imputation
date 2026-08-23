@@ -1,6 +1,8 @@
 ---
 title: "MIA-ICE and MICE Model Diagnostics"
 output: html_notebook
+editor_options: 
+  chunk_output_type: console
 ---
 >
 > Before running this notebook, run **Sections 1-5** of
@@ -15,7 +17,13 @@ simulationOutput <- simulateResiduals(
   plot = FALSE 
   )
 
+svglite::svglite(
+  "diagnostic_plots/dharma_mia_ice_model_2.svg",
+  width = 9,
+  height = 6
+  )
 plot( simulationOutput )
+dev.off()
 ```
 
 #### 1.2. Model 3
@@ -25,7 +33,13 @@ simulationOutput <- simulateResiduals(
   plot = FALSE 
   )
 
+svglite::svglite(
+  "diagnostic_plots/dharma_mia_ice_model_3.svg",
+  width = 9,
+  height = 6
+  )
 plot( simulationOutput )
+dev.off()
 ```
 
 #### 1.3. Model 4
@@ -35,7 +49,13 @@ simulationOutput <- simulateResiduals(
   plot = FALSE 
   )
 
+svglite::svglite(
+  "diagnostic_plots/dharma_mia_ice_model_4.svg",
+  width = 9,
+  height = 6
+  )
 plot( simulationOutput )
+dev.off()
 ```
 
 ### 2. MICE Diagnostics
@@ -44,17 +64,48 @@ plot( simulationOutput )
 summary( mice_model_1 )
 plot( mice_model_1 )
 
+svglite::svglite(
+  "diagnostic_plots/mice_model_1_convergence.svg",
+  width = 9,
+  height = 6
+)
+print( plot( mice_model_1 ) )
+dev.off()
+
 # visualize the distributions of imputed data
 com <- complete( mice_model_1, action = 'long', include = TRUE )
 
-ggplot( data = com[ !is.na( com$identity_change), ], # identity change
-        aes( fill = identity_change, x = .imp ) ) + 
+p_dis_id <- 
+  ggplot( 
+    data = com[ !is.na( com$identity_change), ], # identity change
+    aes( fill = identity_change, x = .imp ) 
+    ) + 
   geom_bar( position = "fill" ) + 
   scale_y_continuous( labels = scales::percent ) + 
   xlab( "Imputation number" ) + 
   ylab( "Percentage" ) + 
-  scale_fill_discrete( name = "Identity Change" ) +
-  theme( legend.justification = "bottom" )
+  labs( title = "Sexual Identity Change" ) +
+  scale_fill_discrete( name = NULL ) +
+  theme_classic() +
+  theme(
+    plot.title = element_text( family = "Arial", size = 12, hjust = 0.5 ),
+    axis.title = element_text( family = "Arial", size = 11 ),
+    axis.text = element_text( family = "Arial", size = 11 ),
+    legend.title = element_blank(),
+    legend.text = element_text( family = "Arial", size = 10 ),
+    legend.position = "bottom" ) +
+  
+  coord_capped_cart( 
+    left = 'both', 
+    bottom = 'both' 
+  ) 
+
+ggsave(
+  "diagnostic_plots/mice_model_1_dis_id.svg",
+  plot = p_dis_id,
+  width = 9,
+  height = 6
+  )
 ```
 
 #### 2.2. Model 2
@@ -62,26 +113,79 @@ ggplot( data = com[ !is.na( com$identity_change), ], # identity change
 summary( mice_model_2 )
 plot( mice_model_2 )
 
+svglite::svglite(
+  "diagnostic_plots/mice_model_2_convergence.svg",
+  width = 9,
+  height = 6
+)
+print( plot( mice_model_2 ) )
+dev.off()
+
 # visualize the distributions of imputed data
 com <- complete( mice_model_2, action = 'long', include = TRUE )
 
-ggplot( data = com[ !is.na( com$occupation), ], # occupation
-        aes( fill = occupation, x = .imp ) ) + 
+p_dis_occ <- 
+  ggplot( 
+    data = com[ !is.na( com$occupation), ], # occupation
+    aes( fill = occupation, x = .imp ) 
+    ) + 
   geom_bar( position = "fill" ) + 
   scale_y_continuous( labels = scales::percent ) + 
   xlab( "Imputation number" ) + 
-  ylab( "Percentage" ) + 
-  scale_fill_discrete( name = "Occupation" ) +
-  theme( legend.justification = "bottom" )
+  ylab( "Percentage" ) +
+  labs( title = "Occupation" ) +
+  scale_fill_discrete( name = NULL ) +
+  theme_classic() +
+  theme(
+    plot.title = element_text( family = "Arial", size = 12, hjust = 0.5 ),
+    axis.title = element_text( family = "Arial", size = 11 ),
+    axis.text = element_text( family = "Arial", size = 11 ),
+    legend.title = element_blank(),
+    legend.text = element_text( family = "Arial", size = 10 ),
+    legend.position = "bottom" ) +
+  
+  coord_capped_cart( 
+    left = 'both', 
+    bottom = 'both' 
+  ) 
 
-ggplot( data = com[ !is.na( com$identity_change), ], # identity change
-        aes( fill = identity_change, x = .imp ) ) + 
+ggsave(
+  "diagnostic_plots/mice_model_2_dis_occ.svg",
+  plot = p_dis_occ,
+  width = 9,
+  height = 6
+)
+
+p_dis_id <- 
+  ggplot( 
+    data = com[ !is.na( com$identity_change), ], # identity change
+    aes( fill = identity_change, x = .imp ) ) + 
   geom_bar( position = "fill" ) + 
   scale_y_continuous( labels = scales::percent ) + 
   xlab( "Imputation number" ) + 
   ylab( "Percentage" ) + 
-  scale_fill_discrete( name = "Identity Change" ) +
-  theme( legend.justification = "bottom" )
+  labs( title = "Sexual Identity Change" ) +
+  scale_fill_discrete( name = NULL ) +
+  theme_classic() +
+  theme(
+    plot.title = element_text( family = "Arial", size = 12, hjust = 0.5 ),
+    axis.title = element_text( family = "Arial", size = 11 ),
+    axis.text = element_text( family = "Arial", size = 11 ),
+    legend.title = element_blank(),
+    legend.text = element_text( family = "Arial", size = 10 ),
+    legend.position = "bottom" ) +
+  
+  coord_capped_cart( 
+    left = 'both', 
+    bottom = 'both' 
+  ) 
+
+ggsave(
+  "diagnostic_plots/mice_model_2_dis_id.svg",
+  plot = p_dis_id,
+  width = 9,
+  height = 6
+)
 ```
 
 #### 2.3. Model 3
@@ -89,17 +193,47 @@ ggplot( data = com[ !is.na( com$identity_change), ], # identity change
 summary( mice_model_3 )
 plot( mice_model_3 )
 
+svglite::svglite(
+  "diagnostic_plots/mice_model_3_convergence.svg",
+  width = 9,
+  height = 6
+)
+print( plot( mice_model_3 ) )
+dev.off()
+
 # visualize the distributions of imputed data
 com <- complete( mice_model_3, action = 'long', include = TRUE )
 
-ggplot( data = com[ !is.na( com$identity_change), ], # identity change
-        aes( fill = identity_change, x = .imp ) ) + 
+p_dis_id <- 
+  ggplot( 
+    data = com[ !is.na( com$identity_change), ], # identity change
+    aes( fill = identity_change, x = .imp ) ) + 
   geom_bar( position = "fill" ) + 
   scale_y_continuous( labels = scales::percent ) + 
   xlab( "Imputation number" ) + 
   ylab( "Percentage" ) + 
-  scale_fill_discrete( name = "Identity Change" ) +
-  theme( legend.justification = "bottom" )
+  labs( title = "Sexual Identity Change" ) +
+  scale_fill_discrete( name = NULL ) +
+  theme_classic() +
+  theme(
+    plot.title = element_text( family = "Arial", size = 12, hjust = 0.5 ),
+    axis.title = element_text( family = "Arial", size = 11 ),
+    axis.text = element_text( family = "Arial", size = 11 ),
+    legend.title = element_blank(),
+    legend.text = element_text( family = "Arial", size = 10 ),
+    legend.position = "bottom" ) +
+  
+  coord_capped_cart( 
+    left = 'both', 
+    bottom = 'both' 
+  ) 
+
+ggsave(
+  "diagnostic_plots/mice_model_3_dis_id.svg",
+  plot = p_dis_id,
+  width = 9,
+  height = 6
+)
 ```
 
 #### 2.4. Model 4
@@ -107,24 +241,77 @@ ggplot( data = com[ !is.na( com$identity_change), ], # identity change
 summary( mice_model_4 )
 plot( mice_model_4 )
 
+svglite::svglite(
+  "diagnostic_plots/mice_model_4_convergence.svg",
+  width = 9,
+  height = 6
+)
+print( plot( mice_model_4 ) )
+dev.off()
+
 # visualize the distributions of imputed data
 com <- complete( mice_model_4, action = 'long', include = TRUE )
 
-ggplot( data = com[ !is.na( com$occupation), ], # occupation
-        aes( fill = occupation, x = .imp ) ) + 
+p_dis_occ <- 
+  ggplot( 
+    data = com[ !is.na( com$occupation), ], # occupation
+    aes( fill = occupation, x = .imp ) 
+    ) + 
   geom_bar( position = "fill" ) + 
   scale_y_continuous( labels = scales::percent ) + 
   xlab( "Imputation number" ) + 
-  ylab( "Percentage" ) + 
-  scale_fill_discrete( name = "Occupation" ) +
-  theme( legend.justification = "bottom" )
+  ylab( "Percentage" ) +
+  labs( title = "Occupation" ) +
+  scale_fill_discrete( name = NULL ) +
+  theme_classic() +
+  theme(
+    plot.title = element_text( family = "Arial", size = 12, hjust = 0.5 ),
+    axis.title = element_text( family = "Arial", size = 11 ),
+    axis.text = element_text( family = "Arial", size = 11 ),
+    legend.title = element_blank(),
+    legend.text = element_text( family = "Arial", size = 10 ),
+    legend.position = "bottom" ) +
+  
+  coord_capped_cart( 
+    left = 'both', 
+    bottom = 'both' 
+  ) 
 
-ggplot( data = com[ !is.na( com$identity_change), ], # identity change
-        aes( fill = identity_change, x = .imp ) ) + 
+ggsave(
+  "diagnostic_plots/mice_model_4_dis_occ.svg",
+  plot = p_dis_occ,
+  width = 9,
+  height = 6
+)
+
+p_dis_id <- 
+  ggplot( 
+    data = com[ !is.na( com$identity_change), ], # identity change
+    aes( fill = identity_change, x = .imp ) ) + 
   geom_bar( position = "fill" ) + 
   scale_y_continuous( labels = scales::percent ) + 
   xlab( "Imputation number" ) + 
   ylab( "Percentage" ) + 
-  scale_fill_discrete( name = "Identity Change" ) +
-  theme( legend.justification = "bottom" )
+  labs( title = "Sexual Identity Change" ) +
+  scale_fill_discrete( name = NULL ) +
+  theme_classic() +
+  theme(
+    plot.title = element_text( family = "Arial", size = 12, hjust = 0.5 ),
+    axis.title = element_text( family = "Arial", size = 11 ),
+    axis.text = element_text( family = "Arial", size = 11 ),
+    legend.title = element_blank(),
+    legend.text = element_text( family = "Arial", size = 10 ),
+    legend.position = "bottom" ) +
+  
+  coord_capped_cart( 
+    left = 'both', 
+    bottom = 'both' 
+  ) 
+
+ggsave(
+  "diagnostic_plots/mice_model_4_dis_id.svg",
+  plot = p_dis_id,
+  width = 9,
+  height = 6
+)
 ```
