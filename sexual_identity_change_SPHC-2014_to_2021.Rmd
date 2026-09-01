@@ -790,7 +790,7 @@ results_all <- results_all %>%
   filter( !model %in% c( "mia_nice_model_2", "mia_nice_model_3", "mia_nice_model_4" )  ) %>%
   select( model, estimate, lower_ci, upper_ci, sample_size )
 
-desired_order <- c( "Complete-case analysis", "mi_model_1", 
+desired_order <- c( "mi_model_1", "Complete-case analysis",
                     "mi_model_2", "mia_ice_model_2", 
                     "mi_model_3", "mia_ice_model_3",
                     "mi_model_4", "mia_ice_model_4" )
@@ -803,7 +803,7 @@ results_all <- results_all %>%
   mutate( sample_size = prettyNum( sample_size, big.mark = ",", preserve.width = "none" ) )
 
 results_all <- results_all %>% 
-  add_row( model = "Model 1", .before = 2 )
+  add_row( model = "Model 1", .before = 1 )
 
 results_all <- results_all %>% 
   add_row( model = "Model 2", .before = 4 )
@@ -814,7 +814,7 @@ results_all <- results_all %>%
 results_all <- results_all %>% 
   add_row( model = "Model 4", .before = 10 )
 
-results_all$model[ results_all$model == "Complete-case analysis" ] <- "uCC"
+results_all$model[ results_all$model == "Complete-case analysis" ] <- paste0( "   ", "MIA (= uCC)" )
 results_all$model[ results_all$model == "mi_model_1" ] <- paste0( "   ", "MICE" )
 results_all$model[ results_all$model == "mi_model_2" ] <- paste0( "   ", "MICE" )
 results_all$model[ results_all$model == "mi_model_3" ] <- paste0( "   ", "MICE" )
@@ -876,7 +876,7 @@ p_rr <- forest(
 
 p_rr <- edit_plot( 
   p_rr,
-  row = c( 1, 2, 4, 7, 10 ),
+  row = c( 1, 4, 7, 10 ),
   col = 1,
   gp = gpar( fontface = "bold" )
   )
@@ -986,7 +986,7 @@ p_rr <- add_border(
 
 p_rr <- edit_plot(
   p_rr,
-  row = c( 6, 9, 12 ),
+  row = c( 3, 6, 9, 12 ),
   col = 7,
   which = "ci",
   gp = gpar(
@@ -1019,7 +1019,7 @@ results_all <- bind_rows(
 results_all <- results_all %>%
   select( model, estimate, lower_ci, upper_ci, sample_size )
 
-desired_order <- c( "Complete-case analysis", "mi_model_1", 
+desired_order <- c( "mi_model_1", "Complete-case analysis", 
                     "mi_model_2", "mia_ice_model_2", "mia_nice_model_2", 
                     "mi_model_3", "mia_ice_model_3", "mia_nice_model_3",
                     "mi_model_4", "mia_ice_model_4", "mia_nice_model_4" )
@@ -1032,7 +1032,7 @@ results_all <- results_all %>%
   mutate( sample_size = prettyNum( sample_size, big.mark = ",", preserve.width = "none" ) )
 
 results_all <- results_all %>% 
-  add_row( model = "Model 1", .before = 2 )
+  add_row( model = "Model 1", .before = 1 )
 
 results_all <- results_all %>% 
   add_row( model = "Model 2", .before = 4 )
@@ -1043,7 +1043,7 @@ results_all <- results_all %>%
 results_all <- results_all %>% 
   add_row( model = "Model 4", .before = 12 )
 
-results_all$model[ results_all$model == "Complete-case analysis" ] <- "uCC"
+results_all$model[ results_all$model == "Complete-case analysis" ] <- paste0( "   ", "MIA (= uCC)" )
 results_all$model[ results_all$model == "mi_model_1" ] <- paste0( "   ", "MICE" )
 results_all$model[ results_all$model == "mi_model_2" ] <- paste0( "   ", "MICE" )
 results_all$model[ results_all$model == "mi_model_3" ] <- paste0( "   ", "MICE" )
@@ -1105,7 +1105,7 @@ p_rr <- forest(
 
 p_rr <- edit_plot( 
   p_rr,
-  row = c( 1, 2, 4, 8, 12 ),
+  row = c( 1, 4, 8, 12 ),
   col = 1,
   gp = gpar( fontface = "bold" )
   )
@@ -1215,7 +1215,7 @@ p_rr <- add_border(
 
 p_rr <- edit_plot(
   p_rr,
-  row = c( 6, 7, 10, 11, 14, 15 ),
+  row = c( 3, 6, 7, 10, 11, 14, 15 ),
   col = 7,
   which = "ci",
   gp = gpar(
